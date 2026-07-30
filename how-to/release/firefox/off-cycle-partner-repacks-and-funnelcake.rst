@@ -57,8 +57,8 @@ Preparation
 
 or update your existing clone.
 
-2. Determine the version and build number we’re going to use. This is
-   generally the most recent Firefox release, but might be ESR or beta.
+2. Determine the version we’re going to use. This is generally the most recent
+   Firefox release, but might be ESR or beta.
 
 3. Determine the partner name - this will be usually be given in the
    bug. There should be a repo at
@@ -131,10 +131,7 @@ bouncer-related docs
 Shipping partner-attributed builds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For requests like `bug 1941537 <https://bugzilla.mozilla.org/show_bug.cgi?id=1941537>`__,
-you will need to push partner-attributed builds to releases and create bouncer entries.
-You won't have to do all these manual steps once
-`bug 1943599 <https://bugzilla.mozilla.org/show_bug.cgi?id=1943599>`__ is done.
+For requests like `bug 1941537 <https://bugzilla.mozilla.org/show_bug.cgi?id=1941537>`__, where we're adding partner repacks to an already shipped build, you will need to push partner-attributed builds to releases and create bouncer entries. You won't have to do all these manual steps once `bug 1943599 <https://bugzilla.mozilla.org/show_bug.cgi?id=1943599>`__ is done.
 
 1. Repeat preparation steps 1 to 4.
 
@@ -173,7 +170,7 @@ installers, as this is not automated in the respin case. Regular
 releases do not require this work, and automating respins is covered by
 `Bug 1583685 <https://bugzilla.mozilla.org/show_bug.cgi?id=1583685>`__.
 
-1. First, define some parameters. You can most of this from the output
+1. First, define some parameters. You can get most of this from the output
    of the script, but ``PARTNER_SUB_CONFIGS`` will depend on which
    sub-configs are of interest in this respin. eg:
 
