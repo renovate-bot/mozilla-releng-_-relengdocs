@@ -80,14 +80,22 @@ or update your existing clone.
    # to ./input.yml
    ./off-cycle-parter-respin.py -v 65.0.2 -b release -p seznam > input.yml
 
-5. If dealing with partner-attributed build, you will have to manually edit ``input.yml``
-   (until `Bug 1943617 <https://bugzilla.mozilla.org/show_bug.cgi?id=1943617>`__) is done.
-   Change the following fields:
+5. Add ``release-partner-repack-bouncer-sub`` to ``rebuild_kinds`` to ensure bouncer
+   entries are created:
 
 .. code-block:: yaml
 
    rebuild_kinds:
    - release-partner-repack-bouncer-sub
+
+6. If dealing with partner-attributed build, you will have to manually edit ``input.yml``
+   (until `Bug 1943617 <https://bugzilla.mozilla.org/show_bug.cgi?id=1943617>`__) is done.
+   Change the following fields -- make sure you don't overwrite existing values in
+   ``rebuild_kinds`` if they exist:
+
+.. code-block:: yaml
+
+   rebuild_kinds:
    - release-partner-attribution
    - release-partner-attribution-beetmover
 
@@ -97,22 +105,22 @@ or update your existing clone.
 
    release_partner_build_number: 1  # Cannot be another value until bug 1943594 is fixed
 
-6. Load the Treeherder link from stderr. Make sure you are logged into Treeherder.
+7. Load the Treeherder link from stderr. Make sure you are logged into Treeherder.
    In the top-right corner of the UI for the push locate the small triangle, select
    ``Custom Push Action...`` from the dropdown list.
 
-7. From the ``Action`` dropdown select ``Release Promotion``.
+8. From the ``Action`` dropdown select ``Release Promotion``.
 
-8. Paste the contents of ``./input.yml`` into the ``Payload`` box, and
+9. Paste the contents of ``./input.yml`` into the ``Payload`` box, and
    click the ``Trigger`` button.
 
-9. Treeherder will display a link to the Taskcluster task for a few
+10. Treeherder will display a link to the Taskcluster task for a few
    seconds, otherwise look for the ``firefox_promote_partners`` job in
    the ``Gecko Decision Task`` line. The graphs are small enough they
    can be monitored in a browser tab, but you can also use
    ``braindump//taskcluster/graph-progress.sh``.
 
-10. When the graph is done, resolve the bug. If there are tasks in the
+11. When the graph is done, resolve the bug. If there are tasks in the
    graph matching ``release-partner-repack-beetmover-*-public``, add the
    link to the candidates directory which the
    ``off-cycle-parter-respin.py`` script provides; otherwise the repacks
@@ -133,6 +141,8 @@ Shipping partner-attributed builds
 
 For requests like `bug 1941537 <https://bugzilla.mozilla.org/show_bug.cgi?id=1941537>`__, where we're adding partner repacks to an already shipped build, you will need to push partner-attributed builds to releases and create bouncer entries. You won't have to do all these manual steps once `bug 1943599 <https://bugzilla.mozilla.org/show_bug.cgi?id=1943599>`__ is done.
 
+Consult `this comment <https://bugzilla.mozilla.org/show_bug.cgi?id=1943594#c3>`__ for a concrete example of the following steps.
+
 1. Repeat preparation steps 1 to 4.
 
 2. Change the following fields in ``input.yml``:
@@ -150,14 +160,29 @@ For requests like `bug 1941537 <https://bugzilla.mozilla.org/show_bug.cgi?id=194
    release_partner_build_number: 1  # Cannot be another value until bug 1943594 is fixed
    release_promotion_flavor: ship_firefox
 
-3. Before going further, be aware that you have to IMMEDIATELY CANCEL THE TASK GROUP you
+3. Add the task group id of the group created when building the repacks to ``previous_graph_ids``.
+   This section should now contain the task group ids for the ``push`` graph, ``promote`` phase,
+   and the group used to build the partner repacks. For example::
+
+.. code-block:: yaml
+
+   previous_graph_ids:
+   - PIUjEyPPQiutouXbtfO7zg
+   - LDXjADF_SR6NlZA6bto1qA
+   - Pw76rtzVR-mW-2wo8559-A
+
+4. Before going further, be aware that you have to IMMEDIATELY CANCEL THE TASK GROUP you
    are about to create. That's because the action task will generate more tasks than
    necessary (notably ``release-notify-ship-firefox`` that will email Release
    Management).
 
-4. Repeat preparation steps 6 to 8 and IMMEDIATELY CANCEL the spawned task group.
+5. Repeat preparation steps 6 to 8 and IMMEDIATELY CANCEL the spawned task group.
 
-5. Rerun ``firefox-push-to-release`` and ``release-bouncer-aliases-firefox``.
+6. Rerun the ``firefox-partner-repack-beetmover`` tasks. This will copy the partner repacks with
+   the dated build number to the ``v1`` directory.
+
+7. ``firefox-push-to-release`` and ``release-bouncer-aliases-firefox`` to copy the builds to
+   ``/releases/`` on archive.mozilla.org and update bouncer aliases respectively.
 
 Now URLs like https://download.mozilla.org/?product=partner-firefox-release-PARTNER-SUBPARTNER-stub&lang=en-GB
 should be pointing to the expected binaries.
