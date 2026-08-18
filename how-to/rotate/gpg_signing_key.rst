@@ -18,7 +18,9 @@ At a high level, the process is as follows:
 5) Update the public key in a few places
 6) Start signing with the new private key
 
-Here's slightly more detail on each step
+Here's slightly more detail on each step.
+
+If the previous signing subkey has been exposed or leaked, it must be revoked, and the process will be more complicated and situation-dependent. https://bugzilla.mozilla.org/show_bug.cgi?id=2061475 may be a good starting point for this, along with the [key generation and handling documentation](https://mozilla-hub.atlassian.net/wiki/spaces/RelEng/pages/27168879/Releng+Product+Signing+GnuPG+key+generation+and+handling).
 
 Generate a new signing subkey
 -----------------------------
@@ -34,7 +36,9 @@ The new key needs to be published on keys.openpgp.org. When rotating the primary
 
 It should also be added to the `scriptworker-scripts` repository's `GPG_PUBKEY_PATH` (while keeping the old keys so current and previous releases can still be verified).
 
-After https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/KEY is updated, a blog post like https://blog.mozilla.org/security/2025/04/01/updated-gpg-key-for-signing-firefox-releases-2/ should be made.
+Additionally, https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/RPM-KEY needs to have the new key added to it manually. (Heads up: you will need to remove the previous subkey from this file before rotation is completed -- more than on that later.)
+
+After https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/KEY and RPM-KEY are updated, a blog post like https://blog.mozilla.org/security/2025/04/01/updated-gpg-key-for-signing-firefox-releases-2/ should be made.
 
 Import the new private key into autograph
 -----------------------------------------
@@ -94,3 +98,8 @@ Now that you've verified that the autograph credentials work, and that the gpg s
 **Do not take this list as complete.** Things have likely changed since these instruction were written. You should inspect both files and make a complete list of everything using the previous subkeys.
 
 Take caution to avoid doing this if there are releases in flight. If you do, files from the same release will get signed with different keys. This doesn't break anything, but it does cause confusion.
+
+Remove the old signing subkey from RPM-KEY
+------------------------------------------
+
+Due to the issues described in https://bugzilla.mozilla.org/show_bug.cgi?id=2062338, we cannot have expired nor revoked subkeys that have signed a package in our RPM repository. You must remove the old signing subkey from https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/RPM-KEY *after* we have shipped packages on all branches signed with the new signing subkey, but *before* the old one has expired.
