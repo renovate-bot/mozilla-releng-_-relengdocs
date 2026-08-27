@@ -31,6 +31,12 @@ correlate them with our release process.
    version (a new upload needs a new version)
 -  AMO does not support “promoting” an upload to ``listed`` if it was
    previously ``unlisted``
+-  Langpacks declare ``strict_min_version = {major}.0`` and
+   ``strict_max_version = {major}.*`` in their manifest.
+-  Langpacks work on any build of their major version, so a failed
+   submission is usually not release blocking: the langpacks already on AMO
+   still work. The exceptions are the first submission in each channel
+   (``X.0b1`` and ``X.0``), where there is nothing to fall back on.
 
 Process
 ~~~~~~~
@@ -39,7 +45,7 @@ Process
    suitable for shipping to end users, as part of this build we generate
    the en-US language pack.
 -  Once Release Management indicates we want to build a release, we
-   kickoff the ‘promote’ phase of the release process, which starts the
+   kickoff the 'promote' phase of the release process, which starts the
    Localized Repackages, which generate each languages language pack.
 -  The language packs get sent off to AMO on an addon submission task,
    this task submits and retries while it waits for AMO to sign the
@@ -94,9 +100,9 @@ Permanent errors
 ~~~~~~~~~~~~~~~~
 
 2022.11.28: All linux langpack tasks failed, but the osx langpack task succeeded. A rerun also failed.
-Logs showed amo_put() produced HTTP status 409; subsequent amo_get()'s returned 404 until retries 
-were exhausted and the task failed. Discussion with AMO devs on slack #addons revealed that they 
-had recently added a version check to prevent submitting lower version numbers, which broke dot 
+Logs showed amo_put() produced HTTP status 409; subsequent amo_get()'s returned 404 until retries
+were exhausted and the task failed. Discussion with AMO devs on slack #addons revealed that they
+had recently added a version check to prevent submitting lower version numbers, which broke dot
 releases. To address this, `an exception was made for langpacks <https://github.com/mozilla/addons-server/issues/20029>`_. Once the fix was deployed to AMO, reruns of the failed langpack tasks succeeded.
 
 2023.06.08: One linux langpack task `failed <https://bugzilla.mozilla.org/show_bug.cgi?id=1837547>`_.  Reruns also failed.  Logs showed amo_get() returned `'status': 'disabled'` for that file.  Discussion with AMO devs revealed that the langpacks for 114.0.1 and 115.0b3 were submitted around the same time, and AMO only allows a single version in each channel to be awaiting approval at one time - if a new version is uploaded before the previous one is approved and signed, the previous version is skipped and disabled.  SRE had to make AMO forget about that "disabled" version before a rerun could succeed.  Note that this is typically not release blocking: in the case of a dot release, there's usually no l10n change, so the new langpacks are effectively the same as the previous version's, and we can proceed with the release, by :ref:`canceling and rerunning <broken_dependencies_cancel_rerun>` the release-balrog-scheduling task in the ship phase.
